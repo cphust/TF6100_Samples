@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <POU Name="MAIN" Id="{b005199f-eac0-4e45-ad0a-f0c8ee6388d7}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+   fbWriteReq   : ADSWRITE := ( NETID := '127.0.0.1.1.1', PORT := 10, TMOUT := DEFAULT_ADS_TIMEOUT );
+   bWrite       : BOOL; (* Rising edge at this variable starts command execution *)
+   nState       : BYTE;
+   bBusy        : BOOL;
+   bError       : BOOL;
+   nErrID       : UDINT;
+   otcidOpcUaClient  : UDINT := 16#01010010;			(* TcCOM Objects -> Project Objects -> OTCID of respective IO Client Object *)
+   ptcidServerUrl : UDINT := 16#03130002;				(* parameter value can be found in TMC -> 16#03130002 *)
+   sEndpointUrl : STRING := 'opc.tcp://localhost:48030';(* New Server URL to be written to OPC UA I/O Client *)
+   END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE nState OF
+   0:
+      IF bWrite THEN
+         bWrite := FALSE;
+         
+         bBusy := TRUE;
+         bError := FALSE;
+         nErrID := 0;
+         
+         fbWriteReq( WRITE := FALSE );
+         fbWriteReq( IDXGRP := otcidOpcUaClient, 
+					 IDXOFFS := ptcidServerUrl, 
+                  	 LEN := INT_TO_UDINT(LEN( sEndpointUrl )),
+					 SRCADDR := ADR( sEndpointUrl ),
+                  	 WRITE := TRUE );
+					 
+         nState := nState + 1;            
+      END_IF
+      
+   1:
+      fbWriteReq( WRITE := FALSE, BUSY=>bBusy, ERR=>bError, ERRID=>nErrID );
+      IF NOT bBusy THEN
+         IF NOT bError THEN
+            nState := 0;(* Success *)
+         ELSE
+            nState := 100;(* Error *)
+         END_IF
+      END_IF
+
+   100:(* TODO::Implement error handler *)
+      nState := 0;
+   
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="56" Count="10" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="69" Count="13" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
