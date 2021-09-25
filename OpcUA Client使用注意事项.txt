@@ -1,0 +1,15 @@
+1. 例子不能直接使用，需要修改一些参数参才可以通讯上
+
+全局变量中，需要根据实际项目修改参数sOpcUaServerUrl
+
+在PRG_RAED子程序中，需要修改UA_Connect功能块输入参数
+
+SessionConnectInfo.sApplicationName;
+
+SessionConnectInfo.eSecurityMode ;
+
+SessionConnectInfo.eSecurityPolicyUri;
+
+SessionConnectInfo.eTransportProfileUri; 
+
+2. PRG_RAED程序只能实现对OPC Server通讯变量的单次读取，如果需要实时通讯的话，需要修改程序
